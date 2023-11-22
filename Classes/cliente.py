@@ -23,6 +23,7 @@ class Cliente:
             raise Exception("Muy largo")
         else:
             self.__dni = value
+
     # Getter nombre_completo
     @property
     def nombre_completo(self):

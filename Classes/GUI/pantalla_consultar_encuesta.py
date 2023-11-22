@@ -175,6 +175,9 @@ class PantallaConsultarEncuesta(ctk.CTk):
         # self.__gestor.tomar_periodo()
         # self.gestor.periodo_tomado()
 
+        
+
+
     def evento_boton_seleccionar(self):
         self.gestor.tomar_boton_seleccionar()
 
@@ -184,6 +187,7 @@ class PantallaConsultarEncuesta(ctk.CTk):
                                              "Se ha cancelado el caso de uso",
                                              "Cerrar")
         self.withdraw()
+
 
 
 
@@ -219,6 +223,7 @@ class PantallaConsultarEncuesta(ctk.CTk):
         if lista_llamadas:
             # Activar el boton de seleccion
             self.__seleccionar_llamada_btn.configure(command=self.evento_boton_seleccionar)
+
             lista_a_mostrar = [from_call_dictionary_to_string(l) for l in lista_llamadas]
             self.__llamadas_encontradas_combo.configure(values=lista_a_mostrar)
             self.__llamadas_encontradas_combo.set(lista_a_mostrar[0])
@@ -240,8 +245,8 @@ class PantallaConsultarEncuesta(ctk.CTk):
         cliente = datos_llamada.get("cliente")
         estado_actual = datos_llamada.get("estado_actual")
         duracion = datos_llamada.get("duracion")
-        preguntas = datos_llamada.get("datos_encuesta")
-        encuesta = preguntas[0].get("encuesta")
+        preguntas = datos_llamada.get("preguntas_y_respuestas")
+        encuesta = datos_llamada.get("encuesta")
 
         cliente = f"Cliente: {cliente}"
         estado_actual_duracion = f"Estado actual: {estado_actual}\nDuracion: {duracion} minutos"

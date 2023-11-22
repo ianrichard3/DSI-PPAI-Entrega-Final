@@ -193,22 +193,43 @@ print(datos_llamada.get("datos_encuesta"))
 
 """
 
+from UI.pantalla_cons2 import PantallaCons2
+
+
+from Persistencia.ConversoresPersistencia.llamada_conversor import LlamadaConversor
+from Persistencia.ConversoresPersistencia.encuesta_conversor import EncuestaConversor
+
+
+
+def mapear_objetos_persistentes():
+    llamadas = [LlamadaConversor.mapear_llamada(l) for l in  LlamadaConversor.get_all()]
+    encuestas = [EncuestaConversor.mapear_encuesta(e) for e in  EncuestaConversor.get_all()]
+    return llamadas, encuestas
+
 
 def main():
     gestor1 = GestorConsultaEncuesta()
-    pantalla1 = PantallaConsultarEncuesta()
+    # pantalla1 = PantallaConsultarEncuesta()
+    pantalla2 = PantallaCons2()
 
 
-    gestor1.pantalla = pantalla1
-    pantalla1.gestor = gestor1
+    # gestor1.pantalla = pantalla1
+    # pantalla1.gestor = gestor1
 
-    for llamda in datos.llamadas:
-        gestor1.add_llamada(llamda)
-    for e in datos.encuestas:
+    gestor1.pantalla = pantalla2
+    pantalla2.gestor = gestor1
+
+    llamadas, encuestas = mapear_objetos_persistentes()
+
+    for llamada in llamadas:
+        gestor1.add_llamada(llamada)
+        
+    for e in encuestas:
         gestor1.add_encuesta(e)
 
+    # pantalla1.opcion_consultar_encuesta()
 
-    pantalla1.opcion_consultar_encuesta()
+    pantalla2.opcion_consultar_encuesta()
     
 
 

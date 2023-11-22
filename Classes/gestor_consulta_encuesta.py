@@ -15,14 +15,19 @@ from Support.funciones_soporte import from_call_dictionary_to_string
 
 from Classes.PatronIterator.i_iterador import IIterador
 from Classes.PatronIterator.iterador_llamadas import IteradorLlamadas
+from Classes.PatronIterator.i_agregado import IAgregado
 
 
 
 
-class GestorConsultaEncuesta:
+
+
+class GestorConsultaEncuesta(IAgregado):
     # def __init__(self, fecha_inicio_periodo: date, fecha_fin_periodo: date, llamada_seleccionada: llamada.Llamada,
     #               tipo_salida_consulta_seleccionada: str):
     def __init__(self):
+
+
 
         # Pantalla
         self.__pantalla = None
@@ -220,8 +225,8 @@ class GestorConsultaEncuesta:
         # print(elementos)
         return IteradorLlamadas(elementos)
 
-    # def crear_iterador(elementos) -> IIterador:
-    #     return IteradorLlamadas(elementos)
+
+
 
     # Mensaje 8
     def buscar_llamadas_en_periodo(self):
@@ -257,6 +262,8 @@ class GestorConsultaEncuesta:
             if iterador.cumple_filtro(filtros):
                 # llamadas_en_periodo_con_respuesta.append(iterador.actual())
                 actual = iterador.actual()
+
+                # esPrimerCambioEstado()
                 datos_llamada = {"operador": actual.descripcion_operador,
                                  "fecha": actual.get_fecha_inicio()}
                 llamadas_en_periodo_con_respuesta.append(datos_llamada)
@@ -310,14 +317,36 @@ class GestorConsultaEncuesta:
         nombre_estado_actual = self.buscar_ultimo_estado_llamada()
         # Mensaje 23.2
         duracion_llamada = self.llamada_seleccionada.calcular_duracion()
+
+        
+
+
         # Mensaje 24
-        datos_encuestas_por_respuesta_cliente = self.buscar_encuesta_de_respuesta()
+        encuesta_de_llamada_seleccionada = self.buscar_encuesta_de_respuesta()
+
+        if not encuesta_de_llamada_seleccionada:
+            descripcion_encuesta = "--Encuesta--No--Encontrada--"
+        else: 
+            descripcion_encuesta = encuesta_de_llamada_seleccionada.descripcion
+
+
+        
+
+
+        # Mensaje 24b 
+        datos_preguntas_y_respuestas = self.buscar_datos_de_respuestas(encuesta_de_llamada_seleccionada)
+
+
+
         self.datos_llamada_seleccionada = {"cliente": nombre_cliente_llamada,
                                             "estado_actual": nombre_estado_actual,
                                             "duracion": duracion_llamada,
-                                            "datos_encuesta": datos_encuestas_por_respuesta_cliente}
+                                            "encuesta": descripcion_encuesta,
+                                            "preguntas_y_respuestas": datos_preguntas_y_respuestas}
         print("\n[Datos a mostrar]")
         print(self.datos_llamada_seleccionada)
+
+
         return self.datos_llamada_seleccionada
 
     # Mensaje 19
@@ -327,41 +356,36 @@ class GestorConsultaEncuesta:
         return ultimo_estado_llamada
 
 
+
     # Mensaje 24
     def buscar_encuesta_de_respuesta(self):
-        """
-        Toma el atributo de llamada seleccionada y busca toda la informacion necesaria que se describe en el CU
-        """
-        todos_datos_respuestas_de_llamada = []
-        # Buscar las respuestas del cliente
-        # Mensaje 25
-        for respuesta_cliente in self.llamada_seleccionada.respuestas_de_encuesta:  
-            # Mensajes 26 y 27
-            descripcion_respuesta_cliente = respuesta_cliente.get_descripcion_rta()
-
-            # Mensaje 28    -> Buscar datos de la encuesta de llamada segun la respuesta del cliente
-            datos_respuesta_de_llamada = self.buscar_datos_encuesta_llamada(descripcion_respuesta_cliente)
-            if datos_respuesta_de_llamada:  # Si no es una lista vacia
-                todos_datos_respuestas_de_llamada.extend(datos_respuesta_de_llamada)  # Muy importante mergear las listas y no agregar otra lista dentro de otra
-        return todos_datos_respuestas_de_llamada
-            
-    
-
-    # Mensaje 28
-    def buscar_datos_encuesta_llamada(self, respuesta_cliente):
-        """
-        Busca los datos de la repuesta, su pregunta, su encuesta
-        """
-        datos_respuesta_de_llamada = []
+        
+        # ASUMIMOS QUE la llamada_seleccionada si o si tiene respuestas de encuesta
+        rta_cliente = self.llamada_seleccionada.get_respuesta_filtro()
+        
         for encuesta in self.encuestas:
-            # Mensaje 29
-            datos_respuesta = encuesta.es_tu_respuesta(respuesta_cliente)
-            # print(datos_respuesta)
-            # Si es respuesta posible de la encuesta
-            if datos_respuesta != False and datos_respuesta not in datos_respuesta_de_llamada:
-                # print(datos_respuesta)
-                datos_respuesta_de_llamada.append(datos_respuesta)
-        return datos_respuesta_de_llamada
+            if encuesta.tiene_respuesta(rta_cliente):
+                return encuesta
+
+            
+    # Mensaje 24b -> APLICANDO EL PATRON ITERATOR
+    def buscar_datos_de_respuestas(self, encuesta_de_llamada):
+        """
+        Toma el atributo de llamada seleccionada, junto con su encuesta ya buscada.
+        Le manda un mensaje a llamada seleccionada que cree el iterador y busque los datos
+        de sus respuestas pertenecientes a la encuesta pasada por parametro
+        """
+
+
+
+        # Mensaje 25     [{p1, r1}, {p2, r2}, ... ,]
+        datos_llamada_seleccionada: list = self.llamada_seleccionada.buscar_datos_de_respuestas(encuesta_de_llamada)
+        
+
+
+        # 25 
+        return datos_llamada_seleccionada
+
     
 
     # Mensaje 38
@@ -369,9 +393,10 @@ class GestorConsultaEncuesta:
         nombre_cliente = self.datos_llamada_seleccionada.get("cliente")
         estado_actual = self.datos_llamada_seleccionada.get("estado_actual")
         duracion = self.datos_llamada_seleccionada.get("duracion")
-        encabezado = f"{nombre_cliente},{estado_actual},{duracion}"
+        encuesta = self.datos_llamada_seleccionada.get("encuesta")
+        encabezado = f"{nombre_cliente},{estado_actual},{duracion},{encuesta}"
         lineas_preguntas = ["Pregunta,Respuesta;"]
-        for pregunta in self.datos_llamada_seleccionada.get("datos_encuesta"):
+        for pregunta in self.datos_llamada_seleccionada.get("preguntas_y_respuestas"):
             preg = pregunta.get("pregunta")
             respuesta = pregunta.get("respuesta")
             lineas_preguntas.append(f"{preg},{respuesta};")

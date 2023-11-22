@@ -46,6 +46,14 @@ class Pregunta:
     
     # Metodos de CU
 
+
+    # Metodo utilizado en el 24
+
+    def tiene_respuesta(self, rta):
+        return rta in self.listar_respuestas_posibles()
+
+
+
     # Mensaje 31.1
     def listar_respuestas_posibles(self):
         """
@@ -60,4 +68,10 @@ class Pregunta:
 
 
 if __name__ == "__main__":
+    # p1 = Pregunta("hola")
+    # p1.add_respuesta(RespuestaPosible("1", "2"))
+    # p1.add_respuesta(RespuestaPosible("4", "52"))
+    # p1.add_respuesta(RespuestaPosible("gw", "25"))
+
+    # print(p1.tiene_respuesta("3"))
     pass
